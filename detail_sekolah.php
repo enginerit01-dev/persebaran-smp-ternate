@@ -640,7 +640,7 @@ $username = $_SESSION['username'];
         
         function showNearestNeighbor() {
             $.ajax({
-                url: 'api/get_nearest.php',
+                url: 'backend/get_nearest.php',
                 method: 'GET',
                 success: function(response) {
                     var data = JSON.parse(response);

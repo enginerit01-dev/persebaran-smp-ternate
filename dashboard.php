@@ -960,7 +960,7 @@ $username = $_SESSION['username'];
         // ============ FUNGSI ============
         function showSchoolInfo(school) {
             $.ajax({
-                url: 'api/get_fasilitas.php?id=' + school.id_sekolah,
+                url: 'backend/get_fasilitas.php?id=' + school.id_sekolah,
                 success: function(fasilitas) {
                     var fas = JSON.parse(fasilitas);
                     var html = `
@@ -1128,7 +1128,7 @@ $username = $_SESSION['username'];
             }
             
             $.ajax({
-                url: 'api/tambah_sekolah.php',
+                url: 'backend/tambah_sekolah.php',
                 method: 'POST',
                 data: formData,
                 dataType: 'json',
