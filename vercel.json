@@ -2,8 +2,7 @@
   "functions": {
     "**/*.php": { "runtime": "vercel-php@0.7.1" }
   },
-  "routes": [
-    { "src": "/", "dest": "index.php" },
-    { "src": "/(.*)", "dest": "/$1" }
+  "rewrites": [
+    { "source": "/", "destination": "/index.php" }
   ]
 }

@@ -83,10 +83,10 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         (
             '$nama_sekolah',
             '$alamat',
-            '$id_kelurahan',
+            $id_kelurahan,
             '$latitude',
             '$longitude',
-            '$jumlah_siswa',
+            $jumlah_siswa,
             'Negeri',
             '$akreditasi'
         )
@@ -110,22 +110,22 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         // Fasilitas
         $lab =
-            isset($_POST['laboratorium'])
+            (isset($_POST['laboratorium']) && $_POST['laboratorium'] == '1')
             ? 'true'
             : 'false';
 
         $perpustakaan =
-            isset($_POST['perpustakaan'])
+            (isset($_POST['perpustakaan']) && $_POST['perpustakaan'] == '1')
             ? 'true'
             : 'false';
 
         $lapangan =
-            isset($_POST['lapangan_olahraga'])
+            (isset($_POST['lapangan_olahraga']) && $_POST['lapangan_olahraga'] == '1')
             ? 'true'
             : 'false';
 
         $toilet =
-            isset($_POST['toilet'])
+            (isset($_POST['toilet']) && $_POST['toilet'] == '1')
             ? 'true'
             : 'false';
 
@@ -142,7 +142,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             )
             VALUES
             (
-                '$id_sekolah',
+                $id_sekolah,
                 $lab,
                 $perpustakaan,
                 $lapangan,
