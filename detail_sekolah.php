@@ -62,23 +62,18 @@ if(!$sekolah) {
     header("Location: dashboard.php");
     exit();
 }
-
-?>
-
 // Ambil fasilitas
 $query_fas = "SELECT * FROM fasilitas WHERE id_sekolah = $id";
-$result_fas = mysqli_query($conn, $query_fas);
-$fasilitas = mysqli_fetch_assoc($result_fas);
+$result_fas = pg_query($conn, $query_fas);
+$fasilitas = pg_fetch_assoc($result_fas);
 
 if(!$fasilitas) {
-    $fasilitas = ['laboratorium' => 0, 'perpustakaan' => 0, 'lapangan_olahraga' => 0, 'toilet' => 1];
+    $fasilitas = ['laboratorium' => false, 'perpustakaan' => false, 'lapangan_olahraga' => false, 'toilet' => true];
 }
 
 $role = $_SESSION['role'];
 $username = $_SESSION['username'];
 ?>
-<!DOCTYPE html>
-<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">

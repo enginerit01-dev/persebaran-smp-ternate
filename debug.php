@@ -13,15 +13,15 @@ echo "</pre>";
 
 // 2. Cek database
 echo "<h3>Database:</h3>";
-$result = mysqli_query($conn, "SELECT COUNT(*) as total FROM smpn");
-$row = mysqli_fetch_assoc($result);
+$result = pg_query($conn, "SELECT COUNT(*) as total FROM smpn");
+$row = pg_fetch_assoc($result);
 echo "Total sekolah: " . $row['total'] . "<br>";
 
 // 3. Cek data sekolah
-$result2 = mysqli_query($conn, "SELECT * FROM smpn");
+$result2 = pg_query($conn, "SELECT * FROM smpn");
 echo "<table border='1'>";
 echo "<tr><th>ID</th><th>Nama</th><th>Lat</th><th>Lng</th></tr>";
-while($row2 = mysqli_fetch_assoc($result2)) {
+while($row2 = pg_fetch_assoc($result2)) {
     echo "<tr>";
     echo "<td>{$row2['id_sekolah']}</td>";
     echo "<td>{$row2['nama_sekolah']}</td>";

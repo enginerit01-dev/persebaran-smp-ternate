@@ -12,8 +12,6 @@ if (!isLoggedIn()) {
 $role = $_SESSION['role'];
 $username = $_SESSION['username'];
 
-try {
-
     // Ambil data sekolah
     $query_sekolah = "
         SELECT 
@@ -28,12 +26,8 @@ try {
         ORDER BY s.nama_sekolah
     ";
 
-    $stmt_sekolah = $conn->prepare($query_sekolah);
-
-    $stmt_sekolah->execute();
-
-    $sekolah_list = $stmt_sekolah->fetchAll(PDO::FETCH_ASSOC);
-
+    $res_sekolah = pg_query($conn, $query_sekolah);
+    $sekolah_list = pg_fetch_all($res_sekolah) ?: [];
 
     // Ambil data kelurahan untuk form
     $kelurahan_query = "
@@ -46,17 +40,8 @@ try {
         ORDER BY k.nama_kelurahan
     ";
 
-    $stmt_kelurahan = $conn->prepare($kelurahan_query);
-
-    $stmt_kelurahan->execute();
-
-    $kelurahan_result = $stmt_kelurahan->fetchAll(PDO::FETCH_ASSOC);
-
-} catch (PDOException $e) {
-
-    die("Database error: " . $e->getMessage());
-
-}
+    $res_kelurahan = pg_query($conn, $kelurahan_query);
+    // Kita biarkan looping while di bawah menggunakan pg_fetch_assoc
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -825,7 +810,7 @@ try {
                     <label>Kelurahan</label>
                     <select name="id_kelurahan" id="id_kelurahan" required>
                         <option value="">Pilih Kelurahan</option>
-                        <?php while($row = mysqli_fetch_assoc($kelurahan_result)): ?>
+                        <?php while($row = pg_fetch_assoc($res_kelurahan)): ?>
                         <option value="<?php echo $row['id_kelurahan']; ?>"><?php echo $row['nama_kelurahan'] . " - " . $row['nama_kecamatan']; ?></option>
                         <?php endwhile; ?>
                     </select>
