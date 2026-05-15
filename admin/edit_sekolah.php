@@ -1,8 +1,11 @@
 <?php
 
 session_start();
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
 require_once '../config/database.php';
+/** @var resource $conn */
 require_once '../config/auth.php';
 
 
@@ -263,9 +266,9 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <div class="form-group">
                     <label>Kelurahan</label>
                     <select name="id_kelurahan" required>
-                        <?php while($row = mysqli_fetch_assoc($kelurahan)): ?>
-                        <option value="<?php echo $row['id_kelurahan']; ?>" <?php echo ($row['id_kelurahan'] == $sekolah['id_kelurahan']) ? 'selected' : ''; ?>>
-                            <?php echo $row['nama_kelurahan'] . " - " . $row['nama_kecamatan']; ?>
+                        <?php while($row_kel = pg_fetch_assoc($kelurahan)): // Menggunakan nama variabel berbeda untuk menghindari konflik ?>
+                        <option value="<?php echo htmlspecialchars($row_kel['id_kelurahan']); ?>" <?php echo ($row_kel['id_kelurahan'] == $sekolah['id_kelurahan']) ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($row_kel['nama_kelurahan']) . " - " . htmlspecialchars($row_kel['nama_kecamatan']); ?>
                         </option>
                         <?php endwhile; ?>
                     </select>
@@ -293,10 +296,10 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <div class="form-group">
                     <label>Fasilitas</label>
                     <div class="checkbox-group">
-                        <label><input type="checkbox" name="laboratorium" <?php echo ($fasilitas && $fasilitas['laboratorium']) ? 'checked' : ''; ?>> Lab</label>
-                        <label><input type="checkbox" name="perpustakaan" <?php echo ($fasilitas && $fasilitas['perpustakaan']) ? 'checked' : ''; ?>> Perpus</label>
-                        <label><input type="checkbox" name="lapangan_olahraga" <?php echo ($fasilitas && $fasilitas['lapangan_olahraga']) ? 'checked' : ''; ?>> Lapangan</label>
-                        <label><input type="checkbox" name="toilet" <?php echo ($fasilitas && $fasilitas['toilet']) ? 'checked' : ''; ?>> Toilet</label>
+                        <label><input type="checkbox" name="laboratorium" <?php echo ($fasilitas && $fasilitas['laboratorium'] === 't') ? 'checked' : ''; ?>> Lab</label>
+                        <label><input type="checkbox" name="perpustakaan" <?php echo ($fasilitas && $fasilitas['perpustakaan'] === 't') ? 'checked' : ''; ?>> Perpus</label>
+                        <label><input type="checkbox" name="lapangan_olahraga" <?php echo ($fasilitas && $fasilitas['lapangan_olahraga'] === 't') ? 'checked' : ''; ?>> Lapangan</label>
+                        <label><input type="checkbox" name="toilet" <?php echo ($fasilitas && $fasilitas['toilet'] === 't') ? 'checked' : ''; ?>> Toilet</label>
                     </div>
                 </div>
                 <button type="submit" class="btn-submit">Update Sekolah</button>

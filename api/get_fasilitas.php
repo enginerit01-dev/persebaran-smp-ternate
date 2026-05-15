@@ -3,6 +3,7 @@
 header('Content-Type: application/json');
 
 require_once '../config/database.php';
+/** @var resource $conn */
 
 
 // =========================
@@ -79,6 +80,13 @@ if(!$fasilitas){
     ];
 }
 
+// Konversi nilai boolean dari PostgreSQL ('t'/'f') ke boolean PHP
+if ($fasilitas) {
+    $fasilitas['laboratorium'] = ($fasilitas['laboratorium'] === 't');
+    $fasilitas['perpustakaan'] = ($fasilitas['perpustakaan'] === 't');
+    $fasilitas['lapangan_olahraga'] = ($fasilitas['lapangan_olahraga'] === 't');
+    $fasilitas['toilet'] = ($fasilitas['toilet'] === 't');
+}
 
 // =========================
 // OUTPUT JSON

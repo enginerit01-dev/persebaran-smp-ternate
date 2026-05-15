@@ -1,8 +1,11 @@
 <?php
 
 session_start();
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
 require_once '../config/database.php';
+/** @var resource $conn */
 require_once '../config/auth.php';
 
 
@@ -216,9 +219,10 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         exit();
 
     } else {
-
-        $error =
-            "❌ Gagal menambahkan data sekolah!";
+        // Simpan pesan error ke session agar bisa ditampilkan di halaman ini
+        $_SESSION['message'] = "❌ Gagal menambahkan data sekolah: " . pg_last_error($conn);
+        $_SESSION['message_type'] = "error";
+        // Tidak perlu exit, biarkan halaman dirender dengan pesan error
     }
 }
 
@@ -234,8 +238,16 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: #f0f2f5; }
-        .container { max-width: 600px; margin: 50px auto; padding: 0 20px; }
+        .container { max-width: 600px; margin: 30px auto; padding: 0 20px; }
         .card { background: white; border-radius: 24px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .alert {
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
         .card h2 { color: #1e5631; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
         .form-group { margin-bottom: 18px; }
         .form-group label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 13px; color: #333; }
@@ -243,18 +255,21 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #1e5631; }
         .checkbox-group { display: flex; gap: 15px; flex-wrap: wrap; margin-top: 10px; }
         .checkbox-group label { display: flex; align-items: center; gap: 6px; font-weight: normal; cursor: pointer; }
-        .btn-submit { background: linear-gradient(135deg, #1e5631, #2d6a4f); color: white; border: none; padding: 14px; border-radius: 12px; cursor: pointer; width: 100%; font-weight: 700; font-size: 16px; margin-top: 10px; transition: all 0.3s; }
+        .btn-submit { background: linear-gradient(135deg, #1e5631, #2d6a4f); color: white; border: none; padding: 14px; border-radius: 12px; cursor: pointer; width: 100%; font-weight: 700; font-size: 16px; margin-top: 20px; transition: all 0.3s; }
         .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(30,86,49,0.3); }
         .btn-back { background: #95a5a6; color: white; border: none; padding: 12px; border-radius: 12px; cursor: pointer; width: 100%; font-weight: 600; margin-top: 10px; }
-        .alert { background: #fee2e2; color: #dc2626; padding: 12px; border-radius: 12px; margin-bottom: 20px; }
+        .alert-error { background: #f8d7da; color: #721c24; border-left: 4px solid #dc3545; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="card">
             <h2><i class="fas fa-plus-circle"></i> Tambah Sekolah Baru</h2>
-            <?php if(isset($error)): ?>
-                <div class="alert"><?php echo $error; ?></div>
+            <?php if(isset($_SESSION['message'])): ?>
+            <div class="alert alert-<?php echo $_SESSION['message_type']; ?>">
+                <i class="fas <?php echo $_SESSION['message_type'] == 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle'; ?>"></i>
+                <?php echo $_SESSION['message']; unset($_SESSION['message']); unset($_SESSION['message_type']); ?>
+            </div>
             <?php endif; ?>
             <form method="POST">
                 <div class="form-group">
@@ -269,8 +284,8 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <label>Kelurahan</label>
                     <select name="id_kelurahan" required>
                         <option value="">Pilih Kelurahan</option>
-                        <?php while($row = mysqli_fetch_assoc($kelurahan_result)): ?>
-                        <option value="<?php echo $row['id_kelurahan']; ?>"><?php echo $row['nama_kelurahan'] . " - " . $row['nama_kecamatan']; ?></option>
+                        <?php while($row = pg_fetch_assoc($kelurahan_result)): ?>
+                        <option value="<?php echo htmlspecialchars($row['id_kelurahan']); ?>"><?php echo htmlspecialchars($row['nama_kelurahan']) . " - " . htmlspecialchars($row['nama_kecamatan']); ?></option>
                         <?php endwhile; ?>
                     </select>
                 </div>

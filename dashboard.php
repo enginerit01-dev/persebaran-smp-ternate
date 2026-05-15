@@ -2,6 +2,7 @@
 session_start();
 
 require_once 'config/database.php';
+/** @var resource $conn */
 require_once 'config/auth.php';
 
 if (!isLoggedIn()) {

@@ -12,6 +12,7 @@ $conn = pg_connect("
     dbname=$dbname
     user=$user
     password=$password
+    sslmode=require
 ");
 
 if(!$conn){
