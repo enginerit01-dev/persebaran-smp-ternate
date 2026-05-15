@@ -118,7 +118,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         (
             '$nama_sekolah',
             '$alamat',
-            '$id_kelurahan',
+            $id_kelurahan,
             '$latitude',
             '$longitude',
             '$jumlah_siswa',
@@ -154,7 +154,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         // =========================
 
         $lab =
-            isset($_POST['laboratorium'])
+            (isset($_POST['laboratorium']) && $_POST['laboratorium'] == '1')
             ? 'true'
             : 'false';
 
@@ -190,7 +190,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             VALUES
             (
-                '$id_sekolah',
+                $id_sekolah,
                 $lab,
                 $perpustakaan,
                 $lapangan,
