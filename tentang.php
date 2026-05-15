@@ -427,7 +427,7 @@ $username = $_SESSION['username'];
             </h2>
             <div class="tech-grid">
                 <span class="tech-badge"><i class="fab fa-php"></i> PHP</span>
-                <span class="tech-badge"><i class="fas fa-database"></i> MySQL</span>
+                <span class="tech-badge"><i class="fas fa-database"></i> PostgreSQL / Supabase</span>
                 <span class="tech-badge"><i class="fab fa-js"></i> JavaScript</span>
                 <span class="tech-badge"><i class="fab fa-css3-alt"></i> CSS3</span>
                 <span class="tech-badge"><i class="fab fa-html5"></i> HTML5</span>

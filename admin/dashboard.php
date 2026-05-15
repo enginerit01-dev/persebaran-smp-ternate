@@ -1,73 +1,14 @@
 <?php
-
 session_start();
-
 require_once '../config/database.php';
 require_once '../config/auth.php';
 
-
-// =========================
-// CEK ADMIN
-// =========================
-
 redirectIfNotAdmin();
 
-
-// =========================
-// TOTAL SEKOLAH
-// =========================
-
-$query_sekolah = pg_query(
-    $conn,
-    "SELECT COUNT(*) AS total FROM smpn"
-);
-
-$total_sekolah = pg_fetch_assoc(
-    $query_sekolah
-)['total'];
-
-
-// =========================
-// TOTAL KELURAHAN
-// =========================
-
-$query_kelurahan = pg_query(
-    $conn,
-    "SELECT COUNT(*) AS total FROM kelurahan"
-);
-
-$total_kelurahan = pg_fetch_assoc(
-    $query_kelurahan
-)['total'];
-
-
-// =========================
-// TOTAL KECAMATAN
-// =========================
-
-$query_kecamatan = pg_query(
-    $conn,
-    "SELECT COUNT(*) AS total FROM kecamatan"
-);
-
-$total_kecamatan = pg_fetch_assoc(
-    $query_kecamatan
-)['total'];
-
-
-// =========================
-// TOTAL USER
-// =========================
-
-$query_user = pg_query(
-    $conn,
-    "SELECT COUNT(*) AS total FROM users"
-);
-
-$total_user = pg_fetch_assoc(
-    $query_user
-)['total'];
-
+$total_sekolah = db_fetch_assoc(db_query("SELECT COUNT(*) as total FROM smpn"))['total'];
+$total_kelurahan = db_fetch_assoc(db_query("SELECT COUNT(*) as total FROM kelurahan"))['total'];
+$total_kecamatan = db_fetch_assoc(db_query("SELECT COUNT(*) as total FROM kecamatan"))['total'];
+$total_user = db_fetch_assoc(db_query("SELECT COUNT(*) as total FROM users"))['total'];
 ?>
 <!DOCTYPE html>
 <html lang="id">

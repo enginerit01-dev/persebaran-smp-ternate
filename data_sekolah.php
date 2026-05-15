@@ -1,12 +1,9 @@
 <?php
-
 session_start();
-
 require_once 'config/database.php';
 require_once 'config/auth.php';
 
 if(!isLoggedIn()) {
-
     header("Location: login.php");
     exit();
 }
@@ -14,49 +11,17 @@ if(!isLoggedIn()) {
 $role = $_SESSION['role'];
 $username = $_SESSION['username'];
 
-
 // Ambil data sekolah
-$query = "
-    SELECT
-        s.*,
-
-        COALESCE(k.nama_kelurahan, '-') AS nama_kelurahan,
-
-        COALESCE(kc.nama_kecamatan, '-') AS nama_kecamatan
-
-    FROM smpn s
-
-    LEFT JOIN kelurahan k
-    ON s.id_kelurahan = k.id_kelurahan
-
-    LEFT JOIN kecamatan kc
-    ON k.id_kecamatan = kc.id_kecamatan
-
-    ORDER BY s.nama_sekolah
-";
-
-$result = pg_query($conn, $query);
-
-
-// Cek query berhasil
-if(!$result){
-
-    die("
-        <h3 style='color:red'>
-            Query database gagal
-        </h3>
-    ");
-}
-
-
-// Simpan data sekolah
+$query = "SELECT s.*, COALESCE(k.nama_kelurahan, '-') as nama_kelurahan, COALESCE(kc.nama_kecamatan, '-') as nama_kecamatan 
+          FROM smpn s 
+          LEFT JOIN kelurahan k ON s.id_kelurahan = k.id_kelurahan 
+          LEFT JOIN kecamatan kc ON k.id_kecamatan = kc.id_kecamatan
+          ORDER BY s.nama_sekolah";
+$result = db_query($query);
 $sekolah_list = [];
-
-while($row = pg_fetch_assoc($result)) {
-
+while($row = db_fetch_assoc($result)) {
     $sekolah_list[] = $row;
 }
-
 ?>
 <!DOCTYPE html>
 <html lang="id">

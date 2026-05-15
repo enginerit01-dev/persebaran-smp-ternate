@@ -1,12 +1,9 @@
 <?php
-
 session_start();
-
 require_once 'config/database.php';
 require_once 'config/auth.php';
 
 if(!isLoggedIn()) {
-
     header("Location: login.php");
     exit();
 }
@@ -14,261 +11,107 @@ if(!isLoggedIn()) {
 $role = $_SESSION['role'];
 $username = $_SESSION['username'];
 
-
-// Ambil data sekolah
-$query = "
-    SELECT
-        id_sekolah,
-        nama_sekolah,
-        latitude,
-        longitude
-    FROM smpn
-";
-
-$result = pg_query($conn, $query);
-
-
-// Cek query
-if(!$result){
-
-    die("
-        <h3 style='color:red'>
-            Query database gagal
-        </h3>
-    ");
-}
-
-
-// Simpan data sekolah
+// Ambil data sekolah untuk perhitungan Nearest Neighbor
+$query = "SELECT id_sekolah, nama_sekolah, latitude, longitude FROM smpn";
+$result = db_query($query);
 $schools = [];
-
-while($row = pg_fetch_assoc($result)) {
-
+while($row = db_fetch_assoc($result)) {
     $schools[] = $row;
 }
 
-
-// ========================
-// CEK DATA
-// ========================
-
+// ============ CEK APAKAH ADA DATA ============
 $hasData = count($schools) > 0;
 
-
-// ========================
-// FUNGSI HAVERSINE
-// ========================
-
+// Fungsi menghitung jarak haversine
 function haversineDistance($lat1, $lon1, $lat2, $lon2) {
-
-    $earthRadius = 6371;
-
+    $earthRadius = 6371; // km
     $dLat = deg2rad($lat2 - $lat1);
     $dLon = deg2rad($lon2 - $lon1);
-
-    $a =
-        sin($dLat / 2) * sin($dLat / 2)
-        +
-        cos(deg2rad($lat1))
-        *
-        cos(deg2rad($lat2))
-        *
-        sin($dLon / 2)
-        *
-        sin($dLon / 2);
-
-    $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
-
+    $a = sin($dLat/2) * sin($dLat/2) + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($dLon/2) * sin($dLon/2);
+    $c = 2 * atan2(sqrt($a), sqrt(1-$a));
     return $earthRadius * $c;
 }
 
-
-// ========================
-// DEFAULT VALUE
-// ========================
-
+// Inisialisasi default values
 $mean_distance = 0;
-
 $density = 0;
-
 $expected_mean = 0;
-
 $nnr = 0;
-
 $pattern = "Tidak Ada Data";
-
 $pattern_class = "random";
-
-$pattern_desc =
-"Belum ada data sekolah.
-Silakan tambah data sekolah terlebih dahulu.";
-
+$pattern_desc = "Belum ada data sekolah. Silakan tambah data sekolah terlebih dahulu melalui admin panel.";
 $detail_distances = [];
 
-
-// ========================
-// PROSES NNA
-// ========================
-
 if($hasData) {
-
+    // Hitung Nearest Neighbor
     $distances = [];
-
     $total_distance = 0;
-
-
     foreach($schools as $i => $school) {
-
         $min_distance = PHP_FLOAT_MAX;
-
         foreach($schools as $j => $other) {
-
             if($i != $j) {
-
-                $distance = haversineDistance(
-                    $school['latitude'],
-                    $school['longitude'],
-                    $other['latitude'],
-                    $other['longitude']
-                );
-
+                $distance = haversineDistance($school['latitude'], $school['longitude'], $other['latitude'], $other['longitude']);
                 if($distance < $min_distance) {
-
                     $min_distance = $distance;
                 }
             }
         }
-
         if($min_distance != PHP_FLOAT_MAX) {
-
             $distances[] = $min_distance;
-
             $total_distance += $min_distance;
         }
     }
 
-
-    // Mean Distance
-    $mean_distance =
-        count($distances) > 0
-        ?
-        $total_distance / count($distances)
-        :
-        0;
-
-
-    // Density
-    $area = 50;
-
+    $mean_distance = count($distances) > 0 ? $total_distance / count($distances) : 0;
+    $area = 50; // Luas wilayah (km²)
     $density = count($schools) / $area;
-
-
-    // Expected Mean
+    
+    // Hindari division by zero
     if($density > 0) {
-
-        $expected_mean =
-            1 / (2 * sqrt($density));
-
-        $nnr =
-            $mean_distance > 0
-            ?
-            $mean_distance / $expected_mean
-            :
-            0;
-
+        $expected_mean = 1 / (2 * sqrt($density));
+        $nnr = $mean_distance > 0 ? $mean_distance / $expected_mean : 0;
     } else {
-
         $expected_mean = 0;
-
         $nnr = 0;
     }
 
-
-    // ========================
-    // POLA PERSEBARAN
-    // ========================
-
+    // Tentukan pola persebaran
     if($nnr < 0.7 && $nnr > 0) {
-
         $pattern = "Mengelompok (Clustered)";
-
         $pattern_class = "clustered";
-
-        $pattern_desc =
-        "Persebaran SMPN cenderung mengelompok
-        pada wilayah tertentu.";
-
-    }
-    elseif($nnr > 1.3) {
-
+        $pattern_desc = "Persebaran SMPN cenderung mengelompok di beberapa wilayah tertentu. Hal ini menunjukkan bahwa pembangunan sekolah terkonsentrasi di area tertentu.";
+    } elseif($nnr > 1.3) {
         $pattern = "Merata (Uniform)";
-
         $pattern_class = "uniform";
-
-        $pattern_desc =
-        "Persebaran SMPN cenderung merata
-        di wilayah penelitian.";
-
-    }
-    elseif($nnr > 0) {
-
+        $pattern_desc = "Persebaran SMPN cenderung merata di seluruh wilayah penelitian. Hal ini menunjukkan distribusi sekolah yang baik.";
+    } elseif($nnr > 0) {
         $pattern = "Acak (Random)";
-
         $pattern_class = "random";
-
-        $pattern_desc =
-        "Persebaran SMPN bersifat acak
-        di wilayah penelitian.";
+        $pattern_desc = "Persebaran SMPN bersifat acak di wilayah penelitian. Tidak ada pola yang jelas dalam distribusi sekolah.";
     }
 
-
-    // ========================
-    // DETAIL JARAK TERDEKAT
-    // ========================
-
+    // Hitung detail jarak terdekat
     foreach($schools as $i => $school) {
-
         $min_distance = PHP_FLOAT_MAX;
-
         $nearest_school = null;
-
         foreach($schools as $j => $other) {
-
             if($i != $j) {
-
-                $distance = haversineDistance(
-                    $school['latitude'],
-                    $school['longitude'],
-                    $other['latitude'],
-                    $other['longitude']
-                );
-
+                $distance = haversineDistance($school['latitude'], $school['longitude'], $other['latitude'], $other['longitude']);
                 if($distance < $min_distance) {
-
                     $min_distance = $distance;
-
                     $nearest_school = $other;
                 }
             }
         }
-
         if($nearest_school) {
-
             $detail_distances[] = [
-
-                'school' =>
-                $school['nama_sekolah'],
-
-                'nearest' =>
-                $nearest_school['nama_sekolah'],
-
-                'distance' =>
-                $min_distance
+                'school' => $school['nama_sekolah'],
+                'nearest' => $nearest_school['nama_sekolah'],
+                'distance' => $min_distance
             ];
         }
     }
 }
-
 ?>
 <!DOCTYPE html>
 <html lang="id">

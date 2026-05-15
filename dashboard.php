@@ -1,11 +1,9 @@
 <?php
 session_start();
-
 require_once 'config/database.php';
-/** @var resource $conn */
 require_once 'config/auth.php';
 
-if (!isLoggedIn()) {
+if(!isLoggedIn()) {
     header("Location: login.php");
     exit();
 }
@@ -13,36 +11,20 @@ if (!isLoggedIn()) {
 $role = $_SESSION['role'];
 $username = $_SESSION['username'];
 
-    // Ambil data sekolah
-    $query_sekolah = "
-        SELECT 
-            s.*,
-            COALESCE(k.nama_kelurahan, '-') AS nama_kelurahan,
-            COALESCE(kc.nama_kecamatan, '-') AS nama_kecamatan
-        FROM smpn s
-        LEFT JOIN kelurahan k 
-            ON s.id_kelurahan = k.id_kelurahan
-        LEFT JOIN kecamatan kc 
-            ON k.id_kecamatan = kc.id_kecamatan
-        ORDER BY s.nama_sekolah
-    ";
+// Ambil data langsung dari database
+$query_sekolah = "SELECT s.*, COALESCE(k.nama_kelurahan, '-') as nama_kelurahan, COALESCE(kc.nama_kecamatan, '-') as nama_kecamatan 
+                  FROM smpn s 
+                  LEFT JOIN kelurahan k ON s.id_kelurahan = k.id_kelurahan 
+                  LEFT JOIN kecamatan kc ON k.id_kecamatan = kc.id_kecamatan";
+$result_sekolah = db_query($query_sekolah);
+$sekolah_list = [];
+while($row = db_fetch_assoc($result_sekolah)) {
+    $sekolah_list[] = $row;
+}
 
-    $res_sekolah = pg_query($conn, $query_sekolah);
-    $sekolah_list = pg_fetch_all($res_sekolah) ?: [];
-
-    // Ambil data kelurahan untuk form
-    $kelurahan_query = "
-        SELECT 
-            k.*,
-            kc.nama_kecamatan
-        FROM kelurahan k
-        JOIN kecamatan kc 
-            ON k.id_kecamatan = kc.id_kecamatan
-        ORDER BY k.nama_kelurahan
-    ";
-
-    $res_kelurahan = pg_query($conn, $kelurahan_query);
-    // Kita biarkan looping while di bawah menggunakan pg_fetch_assoc
+// Ambil data kelurahan untuk form
+$kelurahan_query = "SELECT k.*, kc.nama_kecamatan FROM kelurahan k JOIN kecamatan kc ON k.id_kecamatan = kc.id_kecamatan";
+$kelurahan_result = db_query($kelurahan_query);
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -811,7 +793,7 @@ $username = $_SESSION['username'];
                     <label>Kelurahan</label>
                     <select name="id_kelurahan" id="id_kelurahan" required>
                         <option value="">Pilih Kelurahan</option>
-                        <?php while($row = pg_fetch_assoc($res_kelurahan)): ?>
+                        <?php while($row = db_fetch_assoc($kelurahan_result)): ?>
                         <option value="<?php echo $row['id_kelurahan']; ?>"><?php echo $row['nama_kelurahan'] . " - " . $row['nama_kecamatan']; ?></option>
                         <?php endwhile; ?>
                     </select>
@@ -960,7 +942,7 @@ $username = $_SESSION['username'];
         // ============ FUNGSI ============
         function showSchoolInfo(school) {
             $.ajax({
-                url: 'backend/get_fasilitas.php?id=' + school.id_sekolah,
+                url: 'api/get_fasilitas.php?id=' + school.id_sekolah,
                 success: function(fasilitas) {
                     var fas = JSON.parse(fasilitas);
                     var html = `
@@ -1128,7 +1110,7 @@ $username = $_SESSION['username'];
             }
             
             $.ajax({
-                url: 'backend/tambah_sekolah.php',
+                url: 'api/tambah_sekolah.php',
                 method: 'POST',
                 data: formData,
                 dataType: 'json',

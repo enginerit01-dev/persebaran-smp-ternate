@@ -1,85 +1,25 @@
 <?php
-
 session_start();
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
 require_once '../config/database.php';
-/** @var resource $conn */
-require_once '../config/auth.php';
 
-
-// =========================
-// CEK LOGIN ADMIN
-// =========================
-redirectIfNotAdmin();
-
-
-// =========================
-// AMBIL DATA SEKOLAH
-// =========================
-
-$query = "
-    SELECT
-
-        s.*,
-
-        k.nama_kelurahan,
-
-        kc.nama_kecamatan
-
-    FROM smpn s
-
-    LEFT JOIN kelurahan k
-    ON s.id_kelurahan = k.id_kelurahan
-
-    LEFT JOIN kecamatan kc
-    ON k.id_kecamatan = kc.id_kecamatan
-
-    ORDER BY s.nama_sekolah
-";
-
-$result = pg_query(
-    $conn,
-    $query
-);
-
-
-// =========================
-// CEK QUERY
-// =========================
-
-if(!$result){
-
-    die("
-        <h3 style='color:red'>
-            Gagal mengambil data sekolah
-        </h3>
-    ");
+if(!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
+    header("Location: ../login.php");
+    exit();
 }
 
+// Ambil data sekolah
+$query = "SELECT s.*, k.nama_kelurahan, kc.nama_kecamatan 
+          FROM smpn s 
+          LEFT JOIN kelurahan k ON s.id_kelurahan = k.id_kelurahan 
+          LEFT JOIN kecamatan kc ON k.id_kecamatan = kc.id_kecamatan
+          ORDER BY s.nama_sekolah";
+$result = db_query($query);
 
-// =========================
-// CEK SESSION MESSAGE
-// =========================
-
-$message = isset($_SESSION['message'])
-    ? $_SESSION['message']
-    : '';
-
-$message_type = isset($_SESSION['message_type'])
-    ? $_SESSION['message_type']
-    : '';
-
-
-// =========================
-// HAPUS SESSION MESSAGE
-// =========================
-
+// Cek pesan session
+$message = isset($_SESSION['message']) ? $_SESSION['message'] : '';
+$message_type = isset($_SESSION['message_type']) ? $_SESSION['message_type'] : '';
 unset($_SESSION['message']);
-
 unset($_SESSION['message_type']);
-
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -156,7 +96,7 @@ unset($_SESSION['message_type']);
                         <tr><th>ID</th><th>NPSN</th><th>Nama Sekolah</th><th>Alamat</th><th>Kelurahan</th><th>Kecamatan</th><th>Aksi</th></tr>
                     </thead>
                     <tbody>
-                        <?php while($row = pg_fetch_assoc($result)): ?>
+                        <?php while($row = db_fetch_assoc($result)): ?>
                         <tr>
                             <td><?php echo $row['id_sekolah']; ?></td>
                             <td><span class="badge">6020<?php echo $row['id_sekolah']; ?>90</span></td>

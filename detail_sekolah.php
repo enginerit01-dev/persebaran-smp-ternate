@@ -1,79 +1,43 @@
 <?php
-
 session_start();
-
 require_once 'config/database.php';
 require_once 'config/auth.php';
 
 if(!isLoggedIn()) {
-
     header("Location: login.php");
     exit();
 }
 
+$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
-// Ambil ID sekolah
-$id = isset($_GET['id'])
-    ? (int) $_GET['id']
-    : 0;
+// Ambil data sekolah lengkap dengan JOIN
+$query = "SELECT s.*, k.nama_kelurahan, kc.nama_kecamatan 
+          FROM smpn s 
+          LEFT JOIN kelurahan k ON s.id_kelurahan = k.id_kelurahan 
+          LEFT JOIN kecamatan kc ON k.id_kecamatan = kc.id_kecamatan 
+          WHERE s.id_sekolah = $id";
+$result = db_query($query);
+$sekolah = db_fetch_assoc($result);
 
-
-// Query data sekolah
-$query = "
-    SELECT
-        s.*,
-
-        k.nama_kelurahan,
-
-        kc.nama_kecamatan
-
-    FROM smpn s
-
-    LEFT JOIN kelurahan k
-    ON s.id_kelurahan = k.id_kelurahan
-
-    LEFT JOIN kecamatan kc
-    ON k.id_kecamatan = kc.id_kecamatan
-
-    WHERE s.id_sekolah = $id
-";
-
-$result = pg_query($conn, $query);
-
-
-// Cek query berhasil
-if(!$result){
-
-    die("
-        <h3 style='color:red'>
-            Query database gagal
-        </h3>
-    ");
-}
-
-
-// Ambil data sekolah
-$sekolah = pg_fetch_assoc($result);
-
-
-// Jika data tidak ditemukan
 if(!$sekolah) {
-
     header("Location: dashboard.php");
     exit();
 }
+
 // Ambil fasilitas
 $query_fas = "SELECT * FROM fasilitas WHERE id_sekolah = $id";
-$result_fas = pg_query($conn, $query_fas);
-$fasilitas = pg_fetch_assoc($result_fas);
+$result_fas = db_query($query_fas);
+$fasilitas = db_fetch_assoc($result_fas);
 
 if(!$fasilitas) {
-    $fasilitas = ['laboratorium' => false, 'perpustakaan' => false, 'lapangan_olahraga' => false, 'toilet' => true];
+    $fasilitas = ['laboratorium' => 0, 'perpustakaan' => 0, 'lapangan_olahraga' => 0, 'toilet' => 1];
 }
 
 $role = $_SESSION['role'];
 $username = $_SESSION['username'];
 ?>
+<!DOCTYPE html>
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -640,7 +604,7 @@ $username = $_SESSION['username'];
         
         function showNearestNeighbor() {
             $.ajax({
-                url: 'backend/get_nearest.php',
+                url: 'api/get_nearest.php',
                 method: 'GET',
                 success: function(response) {
                     var data = JSON.parse(response);

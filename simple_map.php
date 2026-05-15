@@ -1,43 +1,12 @@
 <?php
-
 require_once 'config/database.php';
 
-
-// =========================
-// AMBIL DATA SEKOLAH
-// =========================
-
-$query = pg_query(
-    $conn,
-    "SELECT * FROM smpn ORDER BY nama_sekolah"
-);
-
-
-// =========================
-// CEK QUERY
-// =========================
-
-if(!$query){
-
-    die("
-        <h3 style='color:red'>
-            Gagal mengambil data sekolah
-        </h3>
-    ");
-}
-
-
-// =========================
-// SIMPAN KE ARRAY
-// =========================
-
+// Ambil data dari database
+$query = db_query("SELECT * FROM smpn");
 $sekolah_list = [];
-
-while($row = pg_fetch_assoc($query)) {
-
+while($row = db_fetch_assoc($query)) {
     $sekolah_list[] = $row;
 }
-
 ?>
 <!DOCTYPE html>
 <html>

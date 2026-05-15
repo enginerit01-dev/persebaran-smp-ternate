@@ -1,54 +1,12 @@
 <?php
-
 session_start();
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
 require_once '../config/database.php';
-/** @var resource $conn */
 require_once '../config/auth.php';
-
-
-// =========================
-// CEK ADMIN
-// =========================
 
 redirectIfNotAdmin();
 
-
-// =========================
-// QUERY DATA FASILITAS
-// =========================
-
-$query = "
-    SELECT
-        f.*,
-        s.nama_sekolah
-
-    FROM fasilitas f
-
-    JOIN smpn s
-    ON f.id_sekolah = s.id_sekolah
-
-    ORDER BY s.nama_sekolah
-";
-
-$result = pg_query($conn, $query);
-
-
-// =========================
-// CEK QUERY
-// =========================
-
-if(!$result){
-
-    die("
-        <h3 style='color:red'>
-            Gagal mengambil data fasilitas
-        </h3>
-    ");
-}
-
+$query = "SELECT f.*, s.nama_sekolah FROM fasilitas f JOIN smpn s ON f.id_sekolah = s.id_sekolah";
+$result = db_query($query);
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -97,14 +55,14 @@ if(!$result){
                     <table>
                         <thead><tr><th>ID</th><th>Sekolah</th><th>Laboratorium</th><th>Perpustakaan</th><th>Lapangan Olahraga</th><th>Toilet</th></tr></thead>
                         <tbody>
-                            <?php while($row = pg_fetch_assoc($result)): ?>
+                            <?php while($row = db_fetch_assoc($result)): ?>
                             <tr>
                                 <td><?php echo $row['id_fasilitas']; ?></td>
                                 <td><?php echo $row['nama_sekolah']; ?></td>
-                                <td class="<?php echo $row['laboratorium'] === 't' ? 'badge-yes' : 'badge-no'; ?>"><?php echo $row['laboratorium'] === 't' ? '✓ Ya' : '✗ Tidak'; ?></td>
-                                <td class="<?php echo $row['perpustakaan'] === 't' ? 'badge-yes' : 'badge-no'; ?>"><?php echo $row['perpustakaan'] === 't' ? '✓ Ya' : '✗ Tidak'; ?></td>
-                                <td class="<?php echo $row['lapangan_olahraga'] === 't' ? 'badge-yes' : 'badge-no'; ?>"><?php echo $row['lapangan_olahraga'] === 't' ? '✓ Ya' : '✗ Tidak'; ?></td>
-                                <td class="<?php echo $row['toilet'] === 't' ? 'badge-yes' : 'badge-no'; ?>"><?php echo $row['toilet'] === 't' ? '✓ Ya' : '✗ Tidak'; ?></td>
+                                <td class="<?php echo $row['laboratorium'] ? 'badge-yes' : 'badge-no'; ?>"><?php echo $row['laboratorium'] ? '✓ Ya' : '✗ Tidak'; ?></td>
+                                <td class="<?php echo $row['perpustakaan'] ? 'badge-yes' : 'badge-no'; ?>"><?php echo $row['perpustakaan'] ? '✓ Ya' : '✗ Tidak'; ?></td>
+                                <td class="<?php echo $row['lapangan_olahraga'] ? 'badge-yes' : 'badge-no'; ?>"><?php echo $row['lapangan_olahraga'] ? '✓ Ya' : '✗ Tidak'; ?></td>
+                                <td class="<?php echo $row['toilet'] ? 'badge-yes' : 'badge-no'; ?>"><?php echo $row['toilet'] ? '✓ Ya' : '✗ Tidak'; ?></td>
                             </tr>
                             <?php endwhile; ?>
                         </tbody>

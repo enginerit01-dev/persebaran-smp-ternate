@@ -1,233 +1,46 @@
 <?php
-
 session_start();
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
 require_once '../config/database.php';
-/** @var resource $conn */
-require_once '../config/auth.php';
 
-
-// =========================
-// CEK LOGIN ADMIN
-// =========================
-
-if(
-    !isset($_SESSION['user_id'])
-    ||
-    $_SESSION['role'] != 'admin'
-){
-
+if(!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
     header("Location: ../login.php");
     exit();
 }
 
+$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$sekolah = db_fetch_assoc(db_query("SELECT * FROM smpn WHERE id_sekolah = $id"));
+$fasilitas = db_fetch_assoc(db_query("SELECT * FROM fasilitas WHERE id_sekolah = $id"));
+$kelurahan = db_query("SELECT k.*, kc.nama_kecamatan FROM kelurahan k JOIN kecamatan kc ON k.id_kecamatan = kc.id_kecamatan");
 
-// =========================
-// AMBIL ID SEKOLAH
-// =========================
-
-$id = isset($_GET['id'])
-    ? (int) $_GET['id']
-    : 0;
-
-
-// =========================
-// DATA SEKOLAH
-// =========================
-
-$query_sekolah = "
-    SELECT *
-    FROM smpn
-    WHERE id_sekolah = $id
-";
-
-$result_sekolah = pg_query(
-    $conn,
-    $query_sekolah
-);
-
-$sekolah = pg_fetch_assoc(
-    $result_sekolah
-);
-
-
-// =========================
-// DATA FASILITAS
-// =========================
-
-$query_fasilitas = "
-    SELECT *
-    FROM fasilitas
-    WHERE id_sekolah = $id
-";
-
-$result_fasilitas = pg_query(
-    $conn,
-    $query_fasilitas
-);
-
-$fasilitas = pg_fetch_assoc(
-    $result_fasilitas
-);
-
-
-// =========================
-// DATA KELURAHAN
-// =========================
-
-$query_kelurahan = "
-    SELECT
-        k.*,
-        kc.nama_kecamatan
-
-    FROM kelurahan k
-
-    JOIN kecamatan kc
-    ON k.id_kecamatan = kc.id_kecamatan
-
-    ORDER BY
-        kc.nama_kecamatan,
-        k.nama_kelurahan
-";
-
-$kelurahan = pg_query(
-    $conn,
-    $query_kelurahan
-);
-
-
-// =========================
-// JIKA DATA TIDAK ADA
-// =========================
-
-if(!$sekolah){
-
+if(!$sekolah) {
     header("Location: sekolah.php");
     exit();
 }
 
-
-// =========================
-// UPDATE DATA
-// =========================
-
 if($_SERVER['REQUEST_METHOD'] == 'POST') {
-
-
-    $nama_sekolah = pg_escape_string(
-        $conn,
-        $_POST['nama_sekolah']
-    );
-
-    $alamat = pg_escape_string(
-        $conn,
-        $_POST['alamat']
-    );
-
-    $id_kelurahan = (int)
-        $_POST['id_kelurahan'];
-
-    $latitude = pg_escape_string(
-        $conn,
-        $_POST['latitude']
-    );
-
-    $longitude = pg_escape_string(
-        $conn,
-        $_POST['longitude']
-    );
-
-    $jumlah_siswa = (int)
-        $_POST['jumlah_siswa'];
-
-    $akreditasi = pg_escape_string(
-        $conn,
-        $_POST['akreditasi']
-    );
-
-
-    // =========================
-    // UPDATE SMPN
-    // =========================
-
-    $update = "
-        UPDATE smpn
-        SET
-
-            nama_sekolah = '$nama_sekolah',
-
-            alamat = '$alamat',
-
-            id_kelurahan = '$id_kelurahan',
-
-            latitude = '$latitude',
-
-            longitude = '$longitude',
-
-            jumlah_siswa = '$jumlah_siswa',
-
-            akreditasi = '$akreditasi'
-
-        WHERE id_sekolah = $id
-    ";
-
-
-    $result_update = pg_query(
-        $conn,
-        $update
-    );
-
-
-    // =========================
-    // UPDATE FASILITAS
-    // =========================
-
-    if($result_update) {
-
-        $lab =
-            isset($_POST['laboratorium'])
-            ? 'true'
-            : 'false';
-
-        $perpustakaan =
-            isset($_POST['perpustakaan'])
-            ? 'true'
-            : 'false';
-
-        $lapangan =
-            isset($_POST['lapangan_olahraga'])
-            ? 'true'
-            : 'false';
-
-        $toilet =
-            isset($_POST['toilet'])
-            ? 'true'
-            : 'false';
-
-
-        pg_query($conn, "
-            UPDATE fasilitas
-            SET
-
-                laboratorium = $lab,
-
-                perpustakaan = $perpustakaan,
-
-                lapangan_olahraga = $lapangan,
-
-                toilet = $toilet
-
-            WHERE id_sekolah = $id
-        ");
-
-
+    $nama_sekolah = db_escape($_POST['nama_sekolah']);
+    $alamat = db_escape($_POST['alamat']);
+    $id_kelurahan = db_escape($_POST['id_kelurahan']);
+    $latitude = db_escape($_POST['latitude']);
+    $longitude = db_escape($_POST['longitude']);
+    $jumlah_siswa = db_escape($_POST['jumlah_siswa']);
+    $akreditasi = db_escape($_POST['akreditasi']);
+    
+    $update = "UPDATE smpn SET nama_sekolah='$nama_sekolah', alamat='$alamat', id_kelurahan='$id_kelurahan', 
+               latitude='$latitude', longitude='$longitude', jumlah_siswa='$jumlah_siswa', akreditasi='$akreditasi' 
+               WHERE id_sekolah=$id";
+    
+    if(db_query($update)) {
+        $lab = isset($_POST['laboratorium']) ? 'true' : 'false';
+        $perpustakaan = isset($_POST['perpustakaan']) ? 'true' : 'false';
+        $lapangan = isset($_POST['lapangan_olahraga']) ? 'true' : 'false';
+        $toilet = isset($_POST['toilet']) ? 'true' : 'false';
+        db_query("UPDATE fasilitas SET laboratorium=$lab, perpustakaan=$perpustakaan, 
+                            lapangan_olahraga=$lapangan, toilet=$toilet WHERE id_sekolah=$id");
         header("Location: sekolah.php");
         exit();
     }
 }
-
 ?>
 <!DOCTYPE html>
 <html>
@@ -266,9 +79,9 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <div class="form-group">
                     <label>Kelurahan</label>
                     <select name="id_kelurahan" required>
-                        <?php while($row_kel = pg_fetch_assoc($kelurahan)): // Menggunakan nama variabel berbeda untuk menghindari konflik ?>
-                        <option value="<?php echo htmlspecialchars($row_kel['id_kelurahan']); ?>" <?php echo ($row_kel['id_kelurahan'] == $sekolah['id_kelurahan']) ? 'selected' : ''; ?>>
-                            <?php echo htmlspecialchars($row_kel['nama_kelurahan']) . " - " . htmlspecialchars($row_kel['nama_kecamatan']); ?>
+                        <?php while($row = db_fetch_assoc($kelurahan)): ?>
+                        <option value="<?php echo $row['id_kelurahan']; ?>" <?php echo ($row['id_kelurahan'] == $sekolah['id_kelurahan']) ? 'selected' : ''; ?>>
+                            <?php echo $row['nama_kelurahan'] . " - " . $row['nama_kecamatan']; ?>
                         </option>
                         <?php endwhile; ?>
                     </select>
@@ -296,10 +109,10 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <div class="form-group">
                     <label>Fasilitas</label>
                     <div class="checkbox-group">
-                        <label><input type="checkbox" name="laboratorium" <?php echo ($fasilitas && $fasilitas['laboratorium'] === 't') ? 'checked' : ''; ?>> Lab</label>
-                        <label><input type="checkbox" name="perpustakaan" <?php echo ($fasilitas && $fasilitas['perpustakaan'] === 't') ? 'checked' : ''; ?>> Perpus</label>
-                        <label><input type="checkbox" name="lapangan_olahraga" <?php echo ($fasilitas && $fasilitas['lapangan_olahraga'] === 't') ? 'checked' : ''; ?>> Lapangan</label>
-                        <label><input type="checkbox" name="toilet" <?php echo ($fasilitas && $fasilitas['toilet'] === 't') ? 'checked' : ''; ?>> Toilet</label>
+                        <label><input type="checkbox" name="laboratorium" <?php echo ($fasilitas && $fasilitas['laboratorium']) ? 'checked' : ''; ?>> Lab</label>
+                        <label><input type="checkbox" name="perpustakaan" <?php echo ($fasilitas && $fasilitas['perpustakaan']) ? 'checked' : ''; ?>> Perpus</label>
+                        <label><input type="checkbox" name="lapangan_olahraga" <?php echo ($fasilitas && $fasilitas['lapangan_olahraga']) ? 'checked' : ''; ?>> Lapangan</label>
+                        <label><input type="checkbox" name="toilet" <?php echo ($fasilitas && $fasilitas['toilet']) ? 'checked' : ''; ?>> Toilet</label>
                     </div>
                 </div>
                 <button type="submit" class="btn-submit">Update Sekolah</button>
