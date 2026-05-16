@@ -3,7 +3,7 @@ header('Content-Type: application/json');
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-require_once '../config/database.php';
+require_once __DIR__ . '/../config/database.php';
 
 // Query sederhana dulu untuk test
 $query = "SELECT * FROM smpn";

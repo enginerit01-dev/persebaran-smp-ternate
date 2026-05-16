@@ -1,6 +1,6 @@
 <?php
 header('Content-Type: application/json');
-require_once '../config/database.php';
+require_once __DIR__ . '/../config/database.php';
 
 function haversineDistance($lat1, $lon1, $lat2, $lon2) {
     $earthRadius = 6371;

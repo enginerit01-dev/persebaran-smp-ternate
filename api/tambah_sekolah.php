@@ -1,7 +1,7 @@
 <?php
 session_start();
 header('Content-Type: application/json');
-require_once '../config/database.php';
+require_once __DIR__ . '/../config/database.php';
 
 // Cek login admin
 if(!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
